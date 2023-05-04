@@ -102,17 +102,11 @@ rm /tmp/pkg.json
 #
 #####
 
-#mkdir -p "${CONFIG_PATH}"
-mkdir /mnt/RSCPOOL2/apps/vaultwarden
+mkdir -p /mnt/RSCPOOL2/apps/vaultwarden
 
-#iocage exec "${JAIL_NAME}" mkdir -p /mnt/includes
-
-# make data directory and mount inside vaultwarden jail (included web vault)
 iocage exec "${JAIL_NAME}" mkdir -p /usr/local/www/vaultwarden
-iocage fstab -a "${JAIL_NAME}" "/mnt/RSCPOOL2/apps/vaultwarden" /usr/local/www/vaultwarden nullfs rw 0 0
+iocage fstab -a "${JAIL_NAME}" /mnt/RSCPOOL2/apps/vaultwarden /usr/local/www/vaultwarden nullfs rw 0 0
 
-#iocage fstab -a "${JAIL_NAME}" "${CONFIG_PATH}" /usr/local/www nullfs rw 0 0
-#iocage fstab -a "${JAIL_NAME}" "${INCLUDES_PATH}" /mnt/includes nullfs rw 0 0
 
 #####
 #
