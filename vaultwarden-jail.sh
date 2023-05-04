@@ -46,7 +46,7 @@ RELEASE=$(freebsd-version | cut -d - -f -1)"-RELEASE"
 #fi
 #if [ -z "${JAIL_INTERFACES}" ]; then
 #  echo 'JAIL_INTERFACES not set, defaulting to: vnet0:bridge0'
-  JAIL_INTERFACES="vnet0:bridge0"
+JAIL_INTERFACES="vnet0:bridge0"
 #fi
 #if [ -z "${DEFAULT_GW_IP}" ]; then
 #  echo 'Configuration error: DEFAULT_GW_IP must be set'
@@ -83,7 +83,7 @@ RELEASE=$(freebsd-version | cut -d - -f -1)"-RELEASE"
 cat <<__EOF__ >/tmp/pkg.json
 {
   "pkgs": [
-  "nano","bash","go","git"
+  "nano","bash","caddy","vaultwarden"
   ]
 }
 __EOF__
