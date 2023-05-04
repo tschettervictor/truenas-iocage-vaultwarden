@@ -83,7 +83,7 @@ JAIL_INTERFACES="vnet0:bridge0"
 cat <<__EOF__ >/tmp/pkg.json
 {
   "pkgs": [
-  "nano","bash","caddy","vaultwarden"
+  "nano","bash"
   ]
 }
 __EOF__
@@ -139,6 +139,9 @@ iocage fstab -a "${JAIL_NAME}" /mnt/RSCPOOL2/apps/vaultwarden /usr/local/www/vau
 #iocage exec "${JAIL_NAME}" cp /mnt/includes/caddy /usr/local/etc/rc.d/
 #iocage exec "${JAIL_NAME}" cp /mnt/includes/Caddyfile.example /usr/local/www/
 #iocage exec "${JAIL_NAME}" cp -n /mnt/includes/Caddyfile /usr/local/www/ 2>/dev/null
+
+iocage exec "${JAIL_NAME}" pkg install caddy
+iocage exec "${JAIL_NAME}" pkg install vaultwarden
 
 iocage exec "${JAIL_NAME}" sysrc vaultwarden_enable="YES"
 iocage exec "${JAIL_NAME}" sysrc caddy_enable="YES"
