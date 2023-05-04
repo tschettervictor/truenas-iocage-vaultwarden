@@ -34,7 +34,7 @@ JAIL_NAME="vaultwarden"
 #  exit 1
 #fi
 #. "${SCRIPTPATH}"/"${CONFIG_NAME}"
-#INCLUDES_PATH="${SCRIPTPATH}"/includes
+INCLUDES_PATH="${SCRIPTPATH}"/includes
 
 JAILS_MOUNT=$(zfs get -H -o value mountpoint $(iocage get -p)/iocage)
 RELEASE=$(freebsd-version | cut -d - -f -1)"-RELEASE"
