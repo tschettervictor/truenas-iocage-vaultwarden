@@ -106,9 +106,9 @@ rm /tmp/pkg.json
 mkdir /mnt/RSCPOOL2/apps/vaultwarden
 
 #iocage exec "${JAIL_NAME}" mkdir -p /mnt/includes
-iocage exec "${JAIL_NAME}" mkdir -p /usr/local/www
+#iocage exec "${JAIL_NAME}" mkdir -p /usr/local/www
 
-iocage fstab -a "${JAIL_NAME}" "/mnt/RSCPOOL2/apps/vaultwarden" /usr/local/www nullfs rw 0 0
+#iocage fstab -a "${JAIL_NAME}" "/mnt/RSCPOOL2/apps/vaultwarden" /usr/local/www nullfs rw 0 0
 
 #iocage fstab -a "${JAIL_NAME}" "${CONFIG_PATH}" /usr/local/www nullfs rw 0 0
 #iocage fstab -a "${JAIL_NAME}" "${INCLUDES_PATH}" /mnt/includes nullfs rw 0 0
@@ -146,9 +146,7 @@ iocage fstab -a "${JAIL_NAME}" "/mnt/RSCPOOL2/apps/vaultwarden" /usr/local/www n
 #iocage exec "${JAIL_NAME}" cp -n /mnt/includes/Caddyfile /usr/local/www/ 2>/dev/null
 
 iocage exec "${JAIL_NAME}" sysrc vaultwarden_enable="YES"
-
 iocage exec "${JAIL_NAME}" sysrc caddy_enable="YES"
-iocage exec "${JAIL_NAME}" sysrc caddy_config="/usr/local/www/Caddyfile"
 
 iocage restart "${JAIL_NAME}"
 
