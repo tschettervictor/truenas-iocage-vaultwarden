@@ -140,8 +140,8 @@ iocage fstab -a "${JAIL_NAME}" /mnt/RSCPOOL2/apps/vaultwarden /usr/local/www/vau
 #iocage exec "${JAIL_NAME}" cp /mnt/includes/Caddyfile.example /usr/local/www/
 #iocage exec "${JAIL_NAME}" cp -n /mnt/includes/Caddyfile /usr/local/www/ 2>/dev/null
 
-iocage exec "${JAIL_NAME}" pkg install caddy -y
-iocage exec "${JAIL_NAME}" pkg install vaultwarden -y
+iocage exec "${JAIL_NAME}" pkg install -y caddy
+iocage exec "${JAIL_NAME}" pkg install -y vaultwarden
 
 iocage exec "${JAIL_NAME}" sysrc vaultwarden_enable="YES"
 iocage exec "${JAIL_NAME}" sysrc caddy_enable="YES"
