@@ -1,0 +1,5 @@
+http://vaultwarden.riversidehb.ca {
+
+  # proxy root to rocker
+  reverse_proxy * localhost:4567
+}  
