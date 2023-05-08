@@ -13,10 +13,7 @@ This script will work with TrueNAS CORE 13.0.  Due to the EOL status of FreeBSD 
 You will need to create
 - 1 Dataset named `vaultwarden`
 
-
-If you use 1 dataset with subfolders it's recomended to use a similar structure.
-
-If this is not present, a directory `/vaultwarden` will be created in `$POOL_PATH`, 
+If this is not present, a directory `/vaultwarden` will be created in `$POOL_PATH`, so for best snapshot options,  you will want to create the dataset.
 
 ### Installation
 Download the repository to a convenient directory on your TrueNAS system by changing to that directory and running `git clone https://github.com/tschettervictor/truenas-iocage-vaultwarden`.  Then change into the new `truenas-iocage-vaultwarden` directory and create a file called `vaultwarden-config` with your favorite text editor.  In its minimal form, it would look like this:
