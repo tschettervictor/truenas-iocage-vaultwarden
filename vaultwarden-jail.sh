@@ -149,5 +149,5 @@ iocage exec "${JAIL_NAME}" sysrc caddy_enable="YES"
 # Don't need /mnt/includes any more, so unmount it
 iocage fstab -r "${JAIL_NAME}" "${INCLUDES_PATH}" /mnt/includes nullfs rw 0 0
 
-echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}
-echo "Even if you did a reinstall, the token is different.
+echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}"
+echo "Even if you did a reinstall, the token is different."
