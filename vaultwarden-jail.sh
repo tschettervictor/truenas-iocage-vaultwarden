@@ -162,7 +162,8 @@ if [ $NO_CERT -eq 1 ]; then
 elif [ $SELFSIGNED_CERT -eq 1 ]; then
 	echo "Copying Caddyfile for self-signed cert"
 	iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile-selfsigned /usr/local/etc/caddy/Caddyfile 2>/dev/null
-fi	
+fi
+
 iocage exec "${JAIL_NAME}" cp -f /mnt/includes/vaultwarden /usr/local/etc/rc.conf.d/ 2>/dev/null
 
 # Edit Caddyfile and vaultwarden
@@ -171,9 +172,9 @@ iocage exec "${JAIL_NAME}" sed -i '' "s/jail_ip/${IP}/" /usr/local/etc/caddy/Cad
 iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/rc.conf.d/vaultwarden
 iocage exec "${JAIL_NAME}" sed -i '' "s/youradmintokenhere/${ADMIN_TOKEN}/" /usr/local/etc/rc.conf.d/vaultwarden
 
-# Enable caddy and vaultwarden services
-iocage exec "${JAIL_NAME}" sysrc vaultwarden_enable="YES"
-iocage exec "${JAIL_NAME}" sysrc caddy_enable="YES"
+# Restart caddy and vaultwarden services
+iocage exec "${JAIL_NAME}" service caddy restart
+iocage exec "${JAIL_NAME}" service vaultwarden restart
 
 
 # Don't need /mnt/includes any more, so unmount it
