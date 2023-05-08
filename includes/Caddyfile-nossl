@@ -1,0 +1,6 @@
+yourhostnamehere {
+
+  # proxy everything to vaultwarden rocket server
+  reverse_proxy * localhost:4567
+ 
+} 
