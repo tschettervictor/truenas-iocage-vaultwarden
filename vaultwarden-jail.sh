@@ -26,6 +26,8 @@ POOL_PATH=""
 CONFIG_PATH=""
 JAIL_NAME="vaultwarden"
 HOST_NAME=""
+SELFSIGNED_CERT=0
+NO_CERT=0
 CONFIG_NAME="vaultwarden-config"
 
 # Check for vaultwarden-config and set configuration
@@ -58,6 +60,19 @@ if [ -z "${DEFAULT_GW_IP}" ]; then
 fi
 if [ -z "${POOL_PATH}" ]; then
   echo 'Configuration error: POOL_PATH must be set'
+  exit 1
+fi
+
+# Check to see certificate options set in config
+if [ $NO_CERT -eq 0 ] && [ $SELFSIGNED_CERT -eq 0 ]; then
+  echo 'Configuration error: Either NO_CERT,'
+  echo 'or SELFSIGNED_CERT must be set to 1.'
+  exit 1
+fi
+
+if [ $NO_CERT -eq 1 ] && [ $SELFSIGNED_CERT -eq 1 ] ; then
+  echo 'Configuration error: Only one of NO_CERT and SELFSIGNED_CERT'
+  echo 'may be set to 1.'
   exit 1
 fi
 
@@ -131,16 +146,24 @@ iocage exec "${JAIL_NAME}" sysrc caddy_enable="YES"
 
 iocage restart "${JAIL_NAME}"
 
-# Copy Caddyfile and vaultwarden config
-iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile /usr/local/etc/caddy/ 2>/dev/null
-iocage exec "${JAIL_NAME}" cp -f /mnt/includes/vaultwarden /usr/local/etc/rc.conf.d/ 2>/dev/null
+# Generate and insall self-signed cert, if necessary
+if [ $SELFSIGNED_CERT -eq 1 ]; then
+	iocage exec "${JAIL_NAME}" mkdir -p /usr/local/etc/pki/tls/private
+	iocage exec "${JAIL_NAME}" mkdir -p /usr/local/etc/pki/tls/certs
+	openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=${HOST_NAME}" -keyout "${INCLUDES_PATH}"/privkey.pem -out "${INCLUDES_PATH}"/fullchain.pem
+	iocage exec "${JAIL_NAME}" cp /mnt/includes/privkey.pem /usr/local/etc/pki/tls/private/privkey.pem
+	iocage exec "${JAIL_NAME}" cp /mnt/includes/fullchain.pem /usr/local/etc/pki/tls/certs/fullchain.pem
+fi
 
-# Generate self-signed cert
-iocage exec "${JAIL_NAME}" mkdir -p /usr/local/etc/pki/tls/private
-iocage exec "${JAIL_NAME}" mkdir -p /usr/local/etc/pki/tls/certs
-openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=${HOST_NAME}" -keyout "${INCLUDES_PATH}"/privkey.pem -out "${INCLUDES_PATH}"/fullchain.pem
-iocage exec "${JAIL_NAME}" cp /mnt/includes/privkey.pem /usr/local/etc/pki/tls/private/privkey.pem
-iocage exec "${JAIL_NAME}" cp /mnt/includes/fullchain.pem /usr/local/etc/pki/tls/certs/fullchain.pem
+# Copy Caddyfile and vaultwarden config
+if [ $NO_CERT -eq 1 ]; then
+	echo "Copying Caddyfile for no SSL"
+	iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile-reverseproxy /usr/local/etc/caddy/Caddyfile 2>/dev/null
+elif [ $SELFSIGNED_CERT -eq 1 ]; then
+	echo "Copying Caddyfile for self-signed cert"
+	iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile-selfsigned /usr/local/etc/caddy/Caddyfile 2>/dev/null
+fi	
+iocage exec "${JAIL_NAME}" cp -f /mnt/includes/vaultwarden /usr/local/etc/rc.conf.d/ 2>/dev/null
 
 # Edit Caddyfile and vaultwarden
 iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/caddy/Caddyfile
