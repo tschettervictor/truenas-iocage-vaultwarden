@@ -158,7 +158,7 @@ fi
 # Copy Caddyfile and vaultwarden config
 if [ $NO_CERT -eq 1 ]; then
 	echo "Copying Caddyfile for no SSL"
-	iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile-reverseproxy /usr/local/etc/caddy/Caddyfile 2>/dev/null
+	iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile-nossl /usr/local/etc/caddy/Caddyfile 2>/dev/null
 elif [ $SELFSIGNED_CERT -eq 1 ]; then
 	echo "Copying Caddyfile for self-signed cert"
 	iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile-selfsigned /usr/local/etc/caddy/Caddyfile 2>/dev/null
@@ -170,7 +170,7 @@ iocage exec "${JAIL_NAME}" cp -f /mnt/includes/vaultwarden /usr/local/etc/rc.con
 iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/caddy/Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/jail_ip/${IP}/" /usr/local/etc/caddy/Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/rc.conf.d/vaultwarden
-iocage exec "${JAIL_NAME}" sed -i '' "s/youradmintokenhere/${ADMIN_TOKEN}/" /usr/local/etc/rc.conf.d/vaultwarden
+iocage exec "${JAIL_NAME}" sed -i '' "s|youradmintokenhere|${ADMIN_TOKEN}|" /usr/local/etc/rc.conf.d/vaultwarden
 
 # Restart caddy and vaultwarden services
 iocage exec "${JAIL_NAME}" service caddy restart
@@ -180,5 +180,9 @@ iocage exec "${JAIL_NAME}" service vaultwarden restart
 # Don't need /mnt/includes any more, so unmount it
 iocage fstab -r "${JAIL_NAME}" "${INCLUDES_PATH}" /mnt/includes nullfs rw 0 0
 
-echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}"
+echo "Installation complete."
+echo "Using your web browser, go to https://${HOST_NAME} to log in"
+
+# Save passwords for later reference
+echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}" > /root/$${JAIL_NAME}_admin_token.txt
 echo "Even if you did a reinstall, the token is different."
