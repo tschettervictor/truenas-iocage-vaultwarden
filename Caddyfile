@@ -1,6 +1,0 @@
-yourhostnamehere {
-
-  # proxy everything to rocket
-  reverse_proxy * localhost:4567
-  
-}  
