@@ -16,7 +16,7 @@ export SIGNUPS_ALLOWED
 DOMAIN='https://yourhostnamehere'
 export DOMAIN
 
-# ADMIN_TOKEN= # generate one with ~$ openssl rand -base64 48
+ADMIN_TOKEN=youradmintoken # generate one with ~$ openssl rand -base64 48
 # export ADMIN_TOKEN
 
 SMTP_HOST=localhost
