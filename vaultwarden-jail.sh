@@ -135,6 +135,13 @@ iocage restart "${JAIL_NAME}"
 iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile /usr/local/etc/caddy/ 2>/dev/null
 iocage exec "${JAIL_NAME}" cp -f /mnt/includes/vaultwarden /usr/local/etc/rc.conf.d/ 2>/dev/null
 
+# Generate self-signed cert
+iocage exec "${JAIL_NAME}" mkdir -p /usr/local/etc/pki/tls/private
+iocage exec "${JAIL_NAME}" mkdir -p /usr/local/etc/pki/tls/certs
+openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=${HOST_NAME}" -keyout "${INCLUDES_PATH}"/privkey.pem -out "${INCLUDES_PATH}"/fullchain.pem
+iocage exec "${JAIL_NAME}" cp /mnt/includes/privkey.pem /usr/local/etc/pki/tls/private/privkey.pem
+iocage exec "${JAIL_NAME}" cp /mnt/includes/fullchain.pem /usr/local/etc/pki/tls/certs/fullchain.pem
+
 # Edit Caddyfile and vaultwarden
 iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/caddy/Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/jail_ip/${IP}/" /usr/local/etc/caddy/Caddyfile
