@@ -119,15 +119,18 @@ iocage fstab -a "${JAIL_NAME}" "${INCLUDES_PATH}" /mnt/includes nullfs rw 0 0
 #
 #####
 
-# Install caddy and vaultwarde packages
+# Install caddy and vaultwarden packages
 iocage exec "${JAIL_NAME}" pkg install -y caddy
 iocage exec "${JAIL_NAME}" pkg install -y vaultwarden
 
 
 # Copy Caddyfile and vaultwarden config
 iocage exec "${JAIL_NAME}" cp -n /mnt/includes/Caddyfile /usr/local/etc/caddy/ 2>/dev/null
+iocage exec "${JAIL_NAME}" cp -n /mnt/includes/vaultwarden /usr/local/etc/rc.conf.d/ 2>/dev/null
 
-#iocage exec "${JAIL_NAME}" cp -n /mnt/includes/Caddyfile /usr/local/www/ 2>/dev/null
+# Edit Caddyfile and vaultwarden
+iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/caddy/Caddyfile
+iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/rc.conf.d/vaultwarden
 
 # Enable caddy and vaultwarden services
 iocage exec "${JAIL_NAME}" sysrc vaultwarden_enable="YES"
