@@ -184,5 +184,5 @@ echo "Installation complete."
 echo "Using your web browser, go to https://${HOST_NAME} to log in"
 
 # Save passwords for later reference
-echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}" > /root/$${JAIL_NAME}_admin_token.txt
+echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}" > /root/${JAIL_NAME}_admin_token.txt
 echo "Even if you did a reinstall, the token is different."
