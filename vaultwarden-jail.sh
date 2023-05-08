@@ -124,7 +124,7 @@ mkdir -p "${POOL_PATH}"/vaultwarden
 iocage exec "${JAIL_NAME}" mkdir -p /usr/local/www/vaultwarden
 
 # Mount directory for data inside jail
-iocage fstab -a "${JAIL_NAME}" "${POOL_PATH}/vaultwarden /usr/local/www/vaultwarden nullfs rw 0 0
+iocage fstab -a "${JAIL_NAME}" "${POOL_PATH}"/vaultwarden /usr/local/www/vaultwarden nullfs rw 0 0
 
 # Create and mount includes directory for Caddyfile and Vaultwarden file
 iocage exec "${JAIL_NAME}" mkdir -p /mnt/includes
