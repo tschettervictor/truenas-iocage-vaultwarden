@@ -1,4 +1,4 @@
-yourhostnamehere:80, jail_ip:80 {
+yourhostnamehere:80 {
 
 	reverse_proxy /notifications/hub* localhost:4567
 	reverse_proxy * localhost:4567
