@@ -1,6 +1,11 @@
-yourhostnamehere:80, jail_ip:80 {
+yourhostnamehere {
 
-  # proxy everything to vaultwarden rocket server
   reverse_proxy * localhost:4567
- 
-} 
+  
+	log {
+		output file /var/log/yourhostnamehere.log
+	}
+
+	tls /usr/local/etc/pki/tls/certs/fullchain.pem /usr/local/etc/pki/tls/private/privkey.pem
+  
+}
