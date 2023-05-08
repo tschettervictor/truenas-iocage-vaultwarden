@@ -132,8 +132,8 @@ iocage exec "${JAIL_NAME}" sysrc caddy_enable="YES"
 iocage restart "${JAIL_NAME}"
 
 # Copy Caddyfile and vaultwarden config
-iocage exec "${JAIL_NAME}" cp -n /mnt/includes/Caddyfile /usr/local/etc/caddy/ 2>/dev/null
-iocage exec "${JAIL_NAME}" cp -n /mnt/includes/vaultwarden /usr/local/etc/rc.conf.d/ 2>/dev/null
+iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile /usr/local/etc/caddy/ 2>/dev/null
+iocage exec "${JAIL_NAME}" cp -f /mnt/includes/vaultwarden /usr/local/etc/rc.conf.d/ 2>/dev/null
 
 # Edit Caddyfile and vaultwarden
 iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/caddy/Caddyfile
