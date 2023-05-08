@@ -13,8 +13,8 @@ export ROCKET_PORT
 SIGNUPS_ALLOWED='false'
 export SIGNUPS_ALLOWED
 
-# DOMAIN='https://localhost.localdomain'
-# export DOMAIN
+DOMAIN='https://yourhostnamehere'
+export DOMAIN
 
 # ADMIN_TOKEN= # generate one with ~$ openssl rand -base64 48
 # export ADMIN_TOKEN
