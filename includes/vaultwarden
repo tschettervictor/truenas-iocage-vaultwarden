@@ -10,10 +10,10 @@ export ROCKET_PORT
 # ROCKET_TLS='{certs = "/ssl/fullchain.pem", key = "/ssl/key.pem"}'
 # LOG_FILE='/data/bitwarden.log'
 
-SIGNUPS_ALLOWED='false'
+SIGNUPS_ALLOWED='true'
 export SIGNUPS_ALLOWED
 
-DOMAIN='http://yourhostnamehere'
+DOMAIN='https://yourhostnamehere'
 export DOMAIN
 
 ADMIN_TOKEN=youradmintokenhere # generate one with ~$ openssl rand -base64 48
