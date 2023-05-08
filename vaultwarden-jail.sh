@@ -125,6 +125,11 @@ iocage fstab -a "${JAIL_NAME}" "${INCLUDES_PATH}" /mnt/includes nullfs rw 0 0
 iocage exec "${JAIL_NAME}" pkg install -y caddy
 iocage exec "${JAIL_NAME}" pkg install -y vaultwarden
 
+# Enable caddy and vaultwarden services
+iocage exec "${JAIL_NAME}" sysrc vaultwarden_enable="YES"
+iocage exec "${JAIL_NAME}" sysrc caddy_enable="YES"
+
+iocage restart "${JAIL_NAME}"
 
 # Copy Caddyfile and vaultwarden config
 iocage exec "${JAIL_NAME}" cp -n /mnt/includes/Caddyfile /usr/local/etc/caddy/ 2>/dev/null
@@ -134,6 +139,7 @@ iocage exec "${JAIL_NAME}" cp -n /mnt/includes/vaultwarden /usr/local/etc/rc.con
 iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/caddy/Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/jail_ip/${IP}/" /usr/local/etc/caddy/Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/rc.conf.d/vaultwarden
+iocage exec "${JAIL_NAME}" sed -i '' "s/youradmintokenhere/${ADMIN_TOKEN}/" /usr/local/etc/rc.conf.d/vaultwarden
 
 # Enable caddy and vaultwarden services
 iocage exec "${JAIL_NAME}" sysrc vaultwarden_enable="YES"
@@ -143,4 +149,5 @@ iocage exec "${JAIL_NAME}" sysrc caddy_enable="YES"
 # Don't need /mnt/includes any more, so unmount it
 iocage fstab -r "${JAIL_NAME}" "${INCLUDES_PATH}" /mnt/includes nullfs rw 0 0
 
-iocage restart "${JAIL_NAME}"
+echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}
+echo "Even if you did a reinstall, the token is different.
