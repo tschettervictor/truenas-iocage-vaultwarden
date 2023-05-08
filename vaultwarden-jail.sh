@@ -130,6 +130,7 @@ iocage exec "${JAIL_NAME}" cp -n /mnt/includes/vaultwarden /usr/local/etc/rc.con
 
 # Edit Caddyfile and vaultwarden
 iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/caddy/Caddyfile
+iocage exec "${JAIL_NAME}" sed -i '' "s/jail_ip/${IP}/" /usr/local/etc/caddy/Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/rc.conf.d/vaultwarden
 
 # Enable caddy and vaultwarden services
