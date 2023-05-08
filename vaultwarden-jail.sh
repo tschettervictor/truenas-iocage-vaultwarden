@@ -38,6 +38,8 @@ fi
 . "${SCRIPTPATH}"/"${CONFIG_NAME}"
 INCLUDES_PATH="${SCRIPTPATH}"/includes
 
+ADMIN_TOKEN=$(openssl rand -base64 48)
+
 JAILS_MOUNT=$(zfs get -H -o value mountpoint $(iocage get -p)/iocage)
 RELEASE=$(freebsd-version | cut -d - -f -1)"-RELEASE"
 
