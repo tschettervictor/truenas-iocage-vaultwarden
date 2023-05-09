@@ -25,7 +25,11 @@ CONFIG_PATH=""
 JAIL_NAME="vaultwarden"
 HOST_NAME=""
 SELFSIGNED_CERT=0
+STANDALONE_CERT=0
+DNS_CERT=0
 NO_CERT=0
+CERT_EMAIL=""
+DNS_SETTING""
 CONFIG_NAME="vaultwarden-config"
 
 # Check for vaultwarden-config and set configuration
@@ -42,6 +46,12 @@ ADMIN_TOKEN=$(openssl rand -base64 48)
 
 JAILS_MOUNT=$(zfs get -H -o value mountpoint $(iocage get -p)/iocage)
 RELEASE=$(freebsd-version | cut -d - -f -1)"-RELEASE"
+
+#####
+#
+# Input/Config Sanity checks
+#
+#####
 
 # Check that necessary variables were set by vaultwarden-config
 if [ -z "${JAIL_IP}" ]; then
@@ -60,17 +70,35 @@ if [ -z "${POOL_PATH}" ]; then
   echo 'Configuration error: POOL_PATH must be set'
   exit 1
 fi
-
-# Check to see certificate options set in config
-if [ $NO_CERT -eq 0 ] && [ $SELFSIGNED_CERT -eq 0 ]; then
-  echo 'Configuration error: Either NO_CERT,'
-  echo 'or SELFSIGNED_CERT must be set to 1.'
+if [ -z "${HOST_NAME}" ]; then
+  echo 'Configuration error: HOST_NAME must be set'
   exit 1
 fi
 
-if [ $NO_CERT -eq 1 ] && [ $SELFSIGNED_CERT -eq 1 ] ; then
-  echo 'Configuration error: Only one of NO_CERT and SELFSIGNED_CERT'
+# Check cerf config
+if [ $STANDALONE_CERT -eq 0 ] && [ $DNS_CERT -eq 0 ] && [ $NO_CERT -eq 0 ] && [ $SELFSIGNED_CERT -eq 0 ]; then
+  echo 'Configuration error: Either STANDALONE_CERT, DNS_CERT, NO_CERT,'
+  echo 'or SELFSIGNED_CERT must be set to 1.'
+  exit 1
+fi
+if [ $STANDALONE_CERT -eq 1 ] && [ $DNS_CERT -eq 1 ] ; then
+  echo 'Configuration error: Only one of STANDALONE_CERT and DNS_CERT'
   echo 'may be set to 1.'
+  exit 1
+fi
+if [ $DNS_CERT -eq 1 ] && [ -z "${DNS_PLUGIN}" ] ; then
+  echo "DNS_PLUGIN must be set to a supported DNS provider."
+  echo "See https://caddyserver.com/download for available plugins."
+  echo "Use only the last part of the name.  E.g., for"
+  echo "\"github.com/caddy-dns/cloudflare\", enter \"coudflare\"."
+  exit 1
+fi
+if [ $DNS_CERT -eq 1 ] && [ "${CERT_EMAIL}" = "" ] ; then
+  echo "CERT_EMAIL must be set when using Let's Encrypt certs."
+  exit 1
+fi
+if [ $STANDALONE_CERT -eq 1 ] && [ "${CERT_EMAIL}" = "" ] ; then
+  echo "CERT_EMAIL must be set when using Let's Encrypt certs."
   exit 1
 fi
 
@@ -93,6 +121,7 @@ fi
 #####
 
 # List packages to be auto-installed after jail creation
+# Vaultwarden package must be installed AFTER setting the jail mount points
 cat <<__EOF__ >/tmp/pkg.json
 {
   "pkgs": [
