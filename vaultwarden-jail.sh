@@ -125,7 +125,8 @@ fi
 cat <<__EOF__ >/tmp/pkg.json
 {
   "pkgs": [
-  "nano","bash"
+  "nano",
+  "bash"
   ]
 }
 __EOF__
@@ -163,15 +164,33 @@ iocage fstab -a "${JAIL_NAME}" "${INCLUDES_PATH}" /mnt/includes nullfs rw 0 0
 #
 #####
 
-# Install caddy and vaultwarden packages
-iocage exec "${JAIL_NAME}" pkg install -y caddy
+# Build xcaddy, use it to build Caddy
+if ! iocage exec "${JAIL_NAME}" "go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest"
+then
+  echo "Failed to get xcaddy, terminating."
+  exit 1
+fi
+if ! iocage exec "${JAIL_NAME}" cp /root/go/bin/xcaddy /usr/local/bin/xcaddy
+then
+  echo "Failed to move xcaddy to path, terminating."
+  exit 1
+fi
+if [ ${DNS_CERT} -eq 1 ]; then
+  if ! iocage exec "${JAIL_NAME}" xcaddy build --output /usr/local/bin/caddy --with github.com/caddy-dns/"${DNS_PLUGIN}"
+  then
+    echo "Failed to build Caddy with ${DNS_PLUGIN} plugin, terminating."
+    exit 1
+  fi  
+else
+  if ! iocage exec "${JAIL_NAME}" xcaddy build --output /usr/local/bin/caddy
+  then
+    echo "Failed to build Caddy without plugin, terminating."
+    exit 1
+  fi  
+fi
+
+# Install vaultwarden pkg
 iocage exec "${JAIL_NAME}" pkg install -y vaultwarden
-
-# Enable caddy and vaultwarden services
-iocage exec "${JAIL_NAME}" sysrc vaultwarden_enable="YES"
-iocage exec "${JAIL_NAME}" sysrc caddy_enable="YES"
-
-iocage restart "${JAIL_NAME}"
 
 # Generate and insall self-signed cert, if necessary
 if [ $SELFSIGNED_CERT -eq 1 ]; then
@@ -183,29 +202,41 @@ if [ $SELFSIGNED_CERT -eq 1 ]; then
 fi
 
 # Copy Caddyfile and vaultwarden config
+if [ $STANDALONE_CERT -eq 1 ] || [ $DNS_CERT -eq 1 ]; then
+  iocage exec "${JAIL_NAME}" cp -f /mnt/includes/remove-staging.sh /root/
+fi
 if [ $NO_CERT -eq 1 ]; then
 	echo "Copying Caddyfile for no SSL"
-	iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile-nossl /usr/local/etc/caddy/Caddyfile 2>/dev/null
+	iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile-nossl /usr/local/www/Caddyfile
 elif [ $SELFSIGNED_CERT -eq 1 ]; then
 	echo "Copying Caddyfile for self-signed cert"
-	iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile-selfsigned /usr/local/etc/caddy/Caddyfile 2>/dev/null
+	iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile-selfsigned /usr/local/www/Caddyfile
+elif [ $DNS_CERT -eq 1 ]; then
+	echo "Copying Caddyfile for Lets's Encrypt DNS cert"
+	iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile-dns /usr/local/www/Caddyfile
+elif [ $STANDALONE_CERT -eq 1 ]; then
+	echo "Copying Caddyfile for Let's Encrypt cert"
+	iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile-standalone /usr/local/www/Caddyfile	
 fi
-
 iocage exec "${JAIL_NAME}" cp -f /mnt/includes/vaultwarden /usr/local/etc/rc.conf.d/ 2>/dev/null
 
 # Edit Caddyfile and vaultwarden
-iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/caddy/Caddyfile
-iocage exec "${JAIL_NAME}" sed -i '' "s/jail_ip/${IP}/" /usr/local/etc/caddy/Caddyfile
+iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/www/Caddyfile
+iocage exec "${JAIL_NAME}" sed -i '' "s/dns_plugin/${DNS_PLUGIN}/" /usr/local/www/Caddyfile
+iocage exec "${JAIL_NAME}" sed -i '' "s/api_token/${DNS_TOKEN}/" /usr/local/www/Caddyfile
+iocage exec "${JAIL_NAME}" sed -i '' "s/youremailhere/${CERT_EMAIL}/" /usr/local/www/Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/rc.conf.d/vaultwarden
 iocage exec "${JAIL_NAME}" sed -i '' "s|youradmintokenhere|${ADMIN_TOKEN}|" /usr/local/etc/rc.conf.d/vaultwarden
 
-# Restart caddy and vaultwarden services
-iocage exec "${JAIL_NAME}" service caddy restart
-iocage exec "${JAIL_NAME}" service vaultwarden restart
-
+# Enable caddy and vaultwarden services
+iocage exec "${JAIL_NAME}" sysrc vaultwarden_enable="YES"
+iocage exec "${JAIL_NAME}" sysrc caddy_enable="YES"
+iocage exec "${JAIL_NAME}" sysrc caddy_config="/usr/local/www/Caddyfile"
 
 # Don't need /mnt/includes any more, so unmount it
 iocage fstab -r "${JAIL_NAME}" "${INCLUDES_PATH}" /mnt/includes nullfs rw 0 0
+
+iocage restart "${JAIL_NAME}"
 
 echo "Installation complete."
 echo "Using your web browser, go to https://${HOST_NAME} to log in"
