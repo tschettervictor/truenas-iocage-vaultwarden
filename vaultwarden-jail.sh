@@ -29,7 +29,6 @@ STANDALONE_CERT=0
 DNS_CERT=0
 NO_CERT=0
 CERT_EMAIL=""
-DNS_SETTING""
 CONFIG_NAME="vaultwarden-config"
 
 # Check for vaultwarden-config and set configuration
@@ -126,7 +125,9 @@ cat <<__EOF__ >/tmp/pkg.json
 {
   "pkgs": [
   "nano",
-  "bash"
+  "bash",
+  "go",
+  "git"
   ]
 }
 __EOF__
