@@ -1,6 +1,5 @@
 yourhostnamehere {
 
-	reverse_proxy /notifications/hub* localhost:4567
 	reverse_proxy * localhost:4567
   
 	log {
