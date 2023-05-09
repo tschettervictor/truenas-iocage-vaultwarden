@@ -74,7 +74,7 @@ if [ -z "${HOST_NAME}" ]; then
   exit 1
 fi
 
-# Check cerf config
+# Check cert config
 if [ $STANDALONE_CERT -eq 0 ] && [ $DNS_CERT -eq 0 ] && [ $NO_CERT -eq 0 ] && [ $SELFSIGNED_CERT -eq 0 ]; then
   echo 'Configuration error: Either STANDALONE_CERT, DNS_CERT, NO_CERT,'
   echo 'or SELFSIGNED_CERT must be set to 1.'
