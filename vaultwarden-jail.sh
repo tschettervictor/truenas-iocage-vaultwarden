@@ -2,8 +2,6 @@
 # Build an iocage jail under TrueNAS 13.0 using the current release of Caddy with Vaultwarden
 # git clone https://github.com/tschettervictor/truenas-iocage-vaultwarden
 
-set -x
-
 # Check for root privileges
 if ! [ $(id -u) = 0 ]; then
    echo "This script must be run with root privileges"
@@ -98,7 +96,7 @@ fi
 cat <<__EOF__ >/tmp/pkg.json
 {
   "pkgs": [
-  "nano","bash","sudo"
+  "nano","bash"
   ]
 }
 __EOF__
