@@ -17,7 +17,7 @@ DOMAIN='https://yourhostnamehere'
 export DOMAIN
 
 ADMIN_TOKEN=youradmintokenhere # generate one with ~$ openssl rand -base64 48
-# export ADMIN_TOKEN
+export ADMIN_TOKEN
 
 SMTP_HOST=localhost
 export SMTP_HOST
