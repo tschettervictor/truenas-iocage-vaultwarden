@@ -249,7 +249,7 @@ if [ $STANDALONE_CERT -eq 1 ] || [ $DNS_CERT -eq 1 ]; then
   echo "  iocage exec ${JAIL_NAME} /root/remove-staging.sh"
   echo ""
 elif [ $SELFSIGNED_CERT -eq 1 ]; then
-  echo "You have chosen to create a self-signed TLS certificate for your Nextcloud"
+  echo "You have chosen to create a self-signed TLS certificate for your installation."
   echo "installation.  This certificate will not be trusted by your browser and"
   echo "will cause SSL errors when you connect.  If you wish to replace this certificate"
   echo "with one obtained elsewhere, the private key is located at:"
