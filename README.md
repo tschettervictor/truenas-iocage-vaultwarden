@@ -77,9 +77,10 @@ Visit the [Caddy download page](https://caddyserver.com/download) to see the DNS
 Once you've downloaded the script and prepared the configuration file, run this script (`script vaultwarden.log ./vaultwarden-jail.sh`).  The script will run for maybe a minute.  When it finishes, your jail will be created, Vaultwarden will be installed, and you'll be shown the randomly-generated token for the admin portal.
 
 ### Notes
-The vaultwarden config file is located in `/usr/local/etc/rc.conf.d/vaultwarden` There is also a sample file in this directory nameed `vaultwarden.sample` if you want to review it. The only things different in the one deployed by this script are:
+The vaultwarden config file is located in `/usr/local/etc/rc.conf.d/vaultwarden` There is also a sample file in this directory named `vaultwarden.sample` if you want to review it. The only things different in the one deployed by this script are:
 - Signups are allowed by default
-- Domain is changed to you $FQDN
+- Domain is changed to your $FQDN
+
 SMTP options for vaultwarden and other settings can be changed in the admin portal.
 
 The Caddyfile is located at `/usr/local/www/Caddyfile`
