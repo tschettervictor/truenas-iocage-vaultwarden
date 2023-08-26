@@ -178,7 +178,7 @@ if [ "${REINSTALL}" == "true" ]; then
 	echo "Admin token will not be changed on a reinstall."
  	echo "Consult the docs to manually change it if needed."
 else
-	iocage exec "${JAIL_NAME}" "echo -n ${ADMIN_TOKEN} | argon2 '$(openssl rand -base64 32)' -e -id -k 65540 -t 3 -p 4 > /tmp/${JAIL_NAME}_argon2_token.txt"
+	iocage exec "${JAIL_NAME}" "echo -n ${ADMIN_TOKEN} | argon2 '$(openssl rand -base64 32)' -e -id -k 65540 -t 3 -p 4" > /tmp/${JAIL_NAME}_argon2_token.txt
 	ADMIN_HASH=$(cat /tmp/"${JAIL_NAME}"_argon2_token.txt)
 	iocage exec "${JAIL_NAME}" sed -i '' "s|youradmintokenhere|${ADMIN_HASH}|" /usr/local/etc/rc.conf.d/vaultwarden
 	rm /tmp/"${JAIL_NAME}"_argon2_token.txt
