@@ -10,7 +10,7 @@ fi
 
 #####
 #
-# General configuration
+# General Configuration
 #
 #####
 
@@ -21,7 +21,6 @@ DEFAULT_GW_IP=""
 INTERFACE="vnet0"
 VNET="on"
 POOL_PATH=""
-CONFIG_PATH=""
 JAIL_NAME="vaultwarden"
 HOST_NAME=""
 SELFSIGNED_CERT=0
@@ -41,7 +40,7 @@ fi
 . "${SCRIPTPATH}"/"${CONFIG_NAME}"
 INCLUDES_PATH="${SCRIPTPATH}"/includes
 
-ADMIN_TOKEN=$(openssl rand -base64 48)
+ADMIN_TOKEN=$(openssl rand -base64 16)
 
 JAILS_MOUNT=$(zfs get -H -o value mountpoint $(iocage get -p)/iocage)
 RELEASE=$(freebsd-version | cut -d - -f -1)"-RELEASE"
@@ -78,7 +77,7 @@ if [ -z "${HOST_NAME}" ]; then
   exit 1
 fi
 
-# Check cert config
+# Check Certificate Config
 if [ $STANDALONE_CERT -eq 0 ] && [ $DNS_CERT -eq 0 ] && [ $NO_CERT -eq 0 ] && [ $SELFSIGNED_CERT -eq 0 ]; then
   echo 'Configuration error: Either STANDALONE_CERT, DNS_CERT, NO_CERT,'
   echo 'or SELFSIGNED_CERT must be set to 1.'
@@ -117,6 +116,12 @@ then
   NETMASK="24"
 fi
 
+# Check for reinstall
+if [ "$(ls -A "${POOL_PATH}/vaultwarden/data")" ]; then
+	echo "Existing Vaultwarden data detected..."
+	REINSTALL="true"
+fi
+
 #####
 #
 # Jail Creation
@@ -131,7 +136,8 @@ cat <<__EOF__ >/tmp/pkg.json
   "nano",
   "bash",
   "go",
-  "git"
+  "git",
+  "py39-argon2-cffi"
   ]
 }
 __EOF__
@@ -150,18 +156,39 @@ rm /tmp/pkg.json
 #
 #####
 
-# Create and mount vaultwarden directories
+# Create and mount directories
 mkdir -p "${POOL_PATH}"/vaultwarden/data
 iocage exec "${JAIL_NAME}" mkdir -p /usr/local/www/vaultwarden/data
-iocage fstab -a "${JAIL_NAME}" "${POOL_PATH}"/vaultwarden/data /usr/local/www/vaultwarden/data nullfs rw 0 0
-
-# Create and mount includes directory for Caddyfile and Vaultwarden file
 iocage exec "${JAIL_NAME}" mkdir -p /mnt/includes
+iocage fstab -a "${JAIL_NAME}" "${POOL_PATH}"/vaultwarden/data /usr/local/www/vaultwarden/data nullfs rw 0 0
 iocage fstab -a "${JAIL_NAME}" "${INCLUDES_PATH}" /mnt/includes nullfs rw 0 0
 
 #####
 #
-# Additional Dependency installation
+# Vaultwarden Installation
+#
+#####
+# Install pkg
+iocage exec "${JAIL_NAME}" pkg install -y vaultwarden
+# Copy and edit vaultwarden file
+iocage exec "${JAIL_NAME}" cp -f /mnt/includes/vaultwarden /usr/local/etc/rc.conf.d/
+iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/rc.conf.d/vaultwarden
+# Generate secure token/hash using argon2
+if [ "${REINSTALL}" == "true" ]; then
+	echo "Admin token will not be changed on a reinstall."
+ 	echo "Consult the docs to manually change it if needed."
+else
+	iocage exec "${JAIL_NAME}" echo -n "${ADMIN_TOKEN}" | argon2 '$(openssl rand -base64 32)' -e -id -k 65540 -t 3 -p 4 > /tmp/${JAIL_NAME}_argon2_token.txt
+	ADMIN_HASH=$(cat /tmp/"${JAIL_NAME}"_argon2_token.txt)
+	iocage exec "${JAIL_NAME}" sed -i '' "s|youradmintokenhere|${ADMIN_HASH}|" /usr/local/etc/rc.conf.d/vaultwarden
+	rm /tmp/"${JAIL_NAME}"_argon2_token.txt
+fi
+# Enable service
+iocage exec "${JAIL_NAME}" sysrc vaultwarden_enable="YES"
+
+#####
+#
+# Caddyserver Installation
 #
 #####
 
@@ -190,9 +217,6 @@ else
   fi  
 fi
 
-# Install vaultwarden pkg
-iocage exec "${JAIL_NAME}" pkg install -y vaultwarden
-
 # Generate and insall self-signed cert, if necessary
 if [ $SELFSIGNED_CERT -eq 1 ]; then
 	iocage exec "${JAIL_NAME}" mkdir -p /usr/local/etc/pki/tls/private
@@ -201,8 +225,6 @@ if [ $SELFSIGNED_CERT -eq 1 ]; then
 	iocage exec "${JAIL_NAME}" cp /mnt/includes/privkey.pem /usr/local/etc/pki/tls/private/privkey.pem
 	iocage exec "${JAIL_NAME}" cp /mnt/includes/fullchain.pem /usr/local/etc/pki/tls/certs/fullchain.pem
 fi
-
-# Copy Caddyfile and vaultwarden config
 if [ $STANDALONE_CERT -eq 1 ] || [ $DNS_CERT -eq 1 ]; then
   iocage exec "${JAIL_NAME}" cp -f /mnt/includes/remove-staging.sh /root/
 fi
@@ -219,21 +241,16 @@ else
 	echo "Copying Caddyfile for Let's Encrypt cert"
 	iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile-standalone /usr/local/www/Caddyfile	
 fi
-iocage exec "${JAIL_NAME}" cp -f /mnt/includes/vaultwarden /usr/local/etc/rc.conf.d/
 iocage exec "${JAIL_NAME}" cp -f /mnt/includes/caddy /usr/local/etc/rc.d/
 
-# Edit Caddyfile and vaultwarden
+# Edit Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/www/Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/dns_plugin/${DNS_PLUGIN}/" /usr/local/www/Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/api_token/${DNS_TOKEN}/" /usr/local/www/Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/youremailhere/${CERT_EMAIL}/" /usr/local/www/Caddyfile
-iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/rc.conf.d/vaultwarden
-iocage exec "${JAIL_NAME}" sed -i '' "s|youradmintokenhere|${ADMIN_TOKEN}|" /usr/local/etc/rc.conf.d/vaultwarden
-
-# Enable caddy and vaultwarden services
-iocage exec "${JAIL_NAME}" sysrc vaultwarden_enable="YES"
-iocage exec "${JAIL_NAME}" sysrc caddy_enable="YES"
+# Enable service
 iocage exec "${JAIL_NAME}" sysrc caddy_config="/usr/local/www/Caddyfile"
+iocage exec "${JAIL_NAME}" sysrc caddy_enable="YES"
 
 # Don't need /mnt/includes any more, so unmount it
 iocage fstab -r "${JAIL_NAME}" "${INCLUDES_PATH}" /mnt/includes nullfs rw 0 0
@@ -260,12 +277,14 @@ elif [ $SELFSIGNED_CERT -eq 1 ]; then
 fi
 
 echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}" > /root/${JAIL_NAME}_admin_token.txt
-echo ""
+echo "---------------"
 echo "Installation complete."
 echo "Using your web browser, go to https://${HOST_NAME} to log in"
-echo ""
-echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}"
-echo ""
-echo "The admin token is saved in /root/${JAIL_NAME}_admin_token.txt"
-echo ""
-echo "Even if you did a reinstall, the token is different."
+echo "---------------"
+if [ "${REINSTALL}" == "true" ]; then
+	echo "You did a reinstall, your admin token has not changed."
+ 	echo "If you need to generate a new one, please see the vaultwarden github."
+else
+	echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}"
+	echo "The admin token is saved in /root/${JAIL_NAME}_admin_token.txt"
+fi
