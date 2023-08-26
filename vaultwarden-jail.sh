@@ -150,14 +150,10 @@ rm /tmp/pkg.json
 #
 #####
 
-# Create vaultwarden directory on selected pool
-mkdir -p "${POOL_PATH}"/vaultwarden
-
-# Create directory for vaultwarden data inside jail
-iocage exec "${JAIL_NAME}" mkdir -p /usr/local/www/vaultwarden
-
-# Mount directory for data inside jail
-iocage fstab -a "${JAIL_NAME}" "${POOL_PATH}"/vaultwarden /usr/local/www/vaultwarden nullfs rw 0 0
+# Create and mount vaultwarden directories
+mkdir -p "${POOL_PATH}"/vaultwarden/data
+iocage exec "${JAIL_NAME}" mkdir -p /usr/local/www/vaultwarden/data
+iocage fstab -a "${JAIL_NAME}" "${POOL_PATH}"/vaultwarden/data /usr/local/www/vaultwarden/data nullfs rw 0 0
 
 # Create and mount includes directory for Caddyfile and Vaultwarden file
 iocage exec "${JAIL_NAME}" mkdir -p /mnt/includes
