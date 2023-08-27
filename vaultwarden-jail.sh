@@ -77,7 +77,7 @@ if [ -z "${HOST_NAME}" ]; then
   exit 1
 fi
 
-# Check Certificate Config
+# Check cert config
 if [ $STANDALONE_CERT -eq 0 ] && [ $DNS_CERT -eq 0 ] && [ $NO_CERT -eq 0 ] && [ $SELFSIGNED_CERT -eq 0 ]; then
   echo 'Configuration error: Either STANDALONE_CERT, DNS_CERT, NO_CERT,'
   echo 'or SELFSIGNED_CERT must be set to 1.'
@@ -168,9 +168,8 @@ iocage fstab -a "${JAIL_NAME}" "${INCLUDES_PATH}" /mnt/includes nullfs rw 0 0
 # Vaultwarden Installation
 #
 #####
-# Install pkg
+
 iocage exec "${JAIL_NAME}" pkg install -y vaultwarden
-# Copy and edit vaultwarden file
 iocage exec "${JAIL_NAME}" cp -f /mnt/includes/vaultwarden /usr/local/etc/rc.conf.d/
 iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/rc.conf.d/vaultwarden
 # Generate secure token/hash using argon2
@@ -178,10 +177,12 @@ if [ "${REINSTALL}" == "true" ]; then
 	echo "Admin token will not be changed on a reinstall."
  	echo "Consult the docs to manually change it if needed."
 else
-	iocage exec "${JAIL_NAME}" "echo -n ${ADMIN_TOKEN} | argon2 '$(openssl rand -base64 32)' -e -id -k 65540 -t 3 -p 4" > /tmp/${JAIL_NAME}_argon2_token.txt
-	ADMIN_HASH=$(cat /tmp/"${JAIL_NAME}"_argon2_token.txt)
+#	iocage exec "${JAIL_NAME}" "echo -n ${ADMIN_TOKEN} | argon2 '$(openssl rand -base64 32)' -e -id -k 65540 -t 3 -p 4" > /tmp/${JAIL_NAME}_argon2_token.txt
+#	ADMIN_HASH=$(cat /tmp/"${JAIL_NAME}"_argon2_token.txt)
+	ADMIN_HASH=$(iocage exec vaultwarden "echo -n ${ADMIN_TOKEN} | argon2 '$(openssl rand -base64 32)' -e -id -k 65540 -t 3 -p 4")
+ 	echo ${ADMIN_HASH}
 	iocage exec "${JAIL_NAME}" sed -i '' "s|youradmintokenhere|'${ADMIN_HASH}'|" /usr/local/etc/rc.conf.d/vaultwarden
-	rm /tmp/"${JAIL_NAME}"_argon2_token.txt
+#	rm /tmp/"${JAIL_NAME}"_argon2_token.txt
 fi
 # Enable service
 iocage exec "${JAIL_NAME}" sysrc vaultwarden_enable="YES"
