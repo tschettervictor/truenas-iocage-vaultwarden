@@ -185,6 +185,8 @@ else
 fi
 # Enable service
 iocage exec "${JAIL_NAME}" sysrc vaultwarden_enable="YES"
+# Save admin token to TrueNAS root directory
+echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}" > /root/${JAIL_NAME}_admin_token.txt
 
 #####
 #
@@ -276,15 +278,22 @@ elif [ $SELFSIGNED_CERT -eq 1 ]; then
   echo ""
 fi
 
-echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}" > /root/${JAIL_NAME}_admin_token.txt
 echo "---------------"
 echo "Installation complete."
-echo "Using your web browser, go to https://${HOST_NAME} to log in"
+echo "---------------"
+if [ $NO_CERT -eq 1 ]; then
+  echo "Using your web browser, go to http://${HOST_NAME} to log in"
+else
+  echo "Using your web browser, go to https://${HOST_NAME} to log in"
+fi
 echo "---------------"
 if [ "${REINSTALL}" == "true" ]; then
 	echo "You did a reinstall, your admin token has not changed."
  	echo "If you need to generate a new one, please see the vaultwarden github."
 else
-	echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}"
+	echo "---------------"
+ 	echo "Admin Portal Information"
+ 	echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}"
+  	echo "---------------"
 	echo "The admin token is saved in /root/${JAIL_NAME}_admin_token.txt"
 fi
