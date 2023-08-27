@@ -177,21 +177,15 @@ if [ "${REINSTALL}" == "true" ]; then
 	echo "Admin token will not be changed on a reinstall."
  	echo "Consult the docs to manually change it if needed."
 else
-#	iocage exec "${JAIL_NAME}" "echo -n ${ADMIN_TOKEN} | argon2 '$(openssl rand -base64 32)' -e -id -k 65540 -t 3 -p 4" > /tmp/${JAIL_NAME}_argon2_token.txt
-#	ADMIN_HASH=$(cat /tmp/"${JAIL_NAME}"_argon2_token.txt)
 	ADMIN_HASH=$(iocage exec vaultwarden "echo -n ${ADMIN_TOKEN} | argon2 '$(openssl rand -base64 32)' -e -id -k 65540 -t 3 -p 4")
- 	echo ${ADMIN_HASH}
 	iocage exec "${JAIL_NAME}" sed -i '' "s|youradmintokenhere|'${ADMIN_HASH}'|" /usr/local/etc/rc.conf.d/vaultwarden
-#	rm /tmp/"${JAIL_NAME}"_argon2_token.txt
 fi
-# Enable service
 iocage exec "${JAIL_NAME}" sysrc vaultwarden_enable="YES"
-# Save admin token to TrueNAS root directory
 echo "Your admin token to access the admin portal is ${ADMIN_TOKEN}" > /root/${JAIL_NAME}_admin_token.txt
 
 #####
 #
-# Caddyserver Installation
+# Caddy Installation
 #
 #####
 
@@ -245,13 +239,10 @@ else
 	iocage exec "${JAIL_NAME}" cp -f /mnt/includes/Caddyfile-standalone /usr/local/www/Caddyfile	
 fi
 iocage exec "${JAIL_NAME}" cp -f /mnt/includes/caddy /usr/local/etc/rc.d/
-
-# Edit Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/www/Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/dns_plugin/${DNS_PLUGIN}/" /usr/local/www/Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/api_token/${DNS_TOKEN}/" /usr/local/www/Caddyfile
 iocage exec "${JAIL_NAME}" sed -i '' "s/youremailhere/${CERT_EMAIL}/" /usr/local/www/Caddyfile
-# Enable service
 iocage exec "${JAIL_NAME}" sysrc caddy_config="/usr/local/www/Caddyfile"
 iocage exec "${JAIL_NAME}" sysrc caddy_enable="YES"
 
@@ -260,7 +251,9 @@ iocage fstab -r "${JAIL_NAME}" "${INCLUDES_PATH}" /mnt/includes nullfs rw 0 0
 
 iocage restart "${JAIL_NAME}"
 
-echo ""
+echo "---------------"
+echo "Installation complete."
+echo "---------------"
 if [ $STANDALONE_CERT -eq 1 ] || [ $DNS_CERT -eq 1 ]; then
   echo "You have obtained your Let's Encrypt certificate using the staging server."
   echo "This certificate will not be trusted by your browser and will cause SSL errors"
@@ -278,9 +271,6 @@ elif [ $SELFSIGNED_CERT -eq 1 ]; then
   echo "/usr/local/etc/pki/tls/certs/fullchain.pem"
   echo ""
 fi
-
-echo "---------------"
-echo "Installation complete."
 echo "---------------"
 if [ $NO_CERT -eq 1 ]; then
   echo "Using your web browser, go to http://${HOST_NAME} to log in"
