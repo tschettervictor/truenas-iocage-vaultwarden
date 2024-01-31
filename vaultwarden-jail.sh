@@ -159,6 +159,7 @@ rm /tmp/pkg.json
 # Create and mount directories
 mkdir -p "${POOL_PATH}"/vaultwarden/data
 iocage exec "${JAIL_NAME}" mkdir -p /usr/local/www/vaultwarden/data
+iocage exec "${JAIL_NAME}" mkdir -p /usr/local/etc/rc.conf.d
 iocage exec "${JAIL_NAME}" mkdir -p /mnt/includes
 iocage fstab -a "${JAIL_NAME}" "${POOL_PATH}"/vaultwarden/data /usr/local/www/vaultwarden/data nullfs rw 0 0
 iocage fstab -a "${JAIL_NAME}" "${INCLUDES_PATH}" /mnt/includes nullfs rw 0 0
